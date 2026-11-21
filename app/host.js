@@ -2,13 +2,9 @@
 // Hace lo mismo que content.js en YouTube, pero con el reproductor oficial de YouTube incrustado:
 // coloca el chat (panel.html de la extensión), le pasa el tiempo del vídeo y abre los ajustes (app.html).
 // Además: catálogo SOLO con los vídeos que tienen chat, buscador y detección automática de vídeos nuevos.
-import * as DB from '../chat-replay-youtube/shared/db.js';
-import { loadSettings, onSettings } from '../chat-replay-youtube/shared/settings.js';
-import { getFolderFiles } from '../chat-replay-youtube/shared/drive.js';
-import { groupFiles } from '../chat-replay-youtube/shared/parts.js';
-import { norm } from '../chat-replay-youtube/shared/util.js';
-
-const EXT = '../chat-replay-youtube/';
+const EXT = window.TCR_EXT || new URL('../chat-replay-youtube/', location.href).href;
+const [DB, SETM, DRIVE, PARTS, UTIL] = await Promise.all(['db', 'settings', 'drive', 'parts', 'util'].map(n => import(EXT + 'shared/' + n + '.js')));
+const { loadSettings, onSettings } = SETM, { getFolderFiles } = DRIVE, { groupFiles } = PARTS, { norm } = UTIL;
 const CFG = window.CHAT_REPLAY || {};
 const $ = id => document.getElementById(id);
 const SID = Math.random().toString(36).slice(2, 10);
@@ -625,7 +621,7 @@ function openKey() {
   const inp = h('input', { class: 'inp', placeholder: 'AIza…', value: LS.get('tcr_api_key_user', '') || '', spellcheck: 'false', autocomplete: 'off' });
   const out = h('div', { class: 'err' });
   const save = async () => {
-    LS.set('tcr_api_key_user', inp.value.trim()); syncKey();
+    LS.set('tcr_api_key_user', inp.value.trim()); syncKey(); renderSoon();
     out.style.color = 'var(--muted)'; out.textContent = 'Probando…';
     try {
       await ytApi('videos', { part: 'id', id: 'dQw4w9WgXcQ' });
@@ -648,6 +644,7 @@ function openMenu() {
   sheet(h('div', { class: 'brand' }, h('img', { src: 'icons/icon-192.png', alt: '' }), h('div', null, h('h3', { style: 'margin:0', text: 'YTVOD' }), h('div', { class: 'sign', text: 'HECHO POR @BYALVARO__' }))),
     mi('＋', 'Añadir un vídeo', 'Pega un enlace de YouTube', openAdd),
     mi('🔎', 'Buscar vídeos nuevos ahora', 'Mira tu Drive y busca en YouTube los títulos idénticos', async () => { toast('Buscando vídeos nuevos…'); const c = await detect({ force: true }); toast(c ? 'Hay vídeos nuevos en el inicio' : 'No hay vídeos nuevos'); }),
+    bridgeV ? mi('⇄', 'Traer todo de la extensión', 'Cuentas, ajustes, sincronización y chats de Chat Replay ' + bridgeV, () => importFromExtension(false)) : null,
     mi('🔑', 'Clave de Google', apiKey() ? 'Puesta ✓' : 'Falta: la app la necesita para leer Drive', openKey),
     !standalone ? mi('⬇', 'Instalar la app', installEvt ? 'Se queda como una aplicación más' : (/iPad|iPhone|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document ? 'Compartir → Añadir a pantalla de inicio' : 'Menú del navegador → Instalar YTVOD'), async () => { if (installEvt) { installEvt.prompt(); installEvt = null; } else toast(/iPad|iPhone/.test(navigator.userAgent) || 'ontouchend' in document ? 'En Safari: botón Compartir → «Añadir a pantalla de inicio»' : 'En Chrome o Edge: menú ⋮ → «Instalar YTVOD»', 5000); }) : null,
     mi('ⓘ', 'Acerca de', `App ${APP_V} · Chat ${chrome.runtime.getManifest().version}`, openAbout));
@@ -663,6 +660,48 @@ $('bAdd').onclick = openAdd;
 $('bMenu').onclick = openMenu;
 
 /* ===================================================================== */
+/*  Traer todo de la extensión (cuentas, ajustes, sincronización, chats) */
+/* ===================================================================== */
+const EXT_ID = CFG.extensionId || 'heimiajbpknkogchnefpcdelmgmenhgd';
+const EXT_ORIGIN = 'chrome-extension://' + EXT_ID;
+let bridge = null, bridgeV = null, bridgeWait = null;
+function startBridge() {
+  if (!/Chrome|Edg\//.test(navigator.userAgent) || /Mobile|Android|iPad|iPhone/.test(navigator.userAgent)) return;
+  bridge = h('iframe', { src: EXT_ORIGIN + '/bridge.html', style: 'display:none', title: 'Chat Replay' });
+  document.body.append(bridge);
+}
+addEventListener('message', e => {
+  if (e.origin !== EXT_ORIGIN || !bridge || e.source !== bridge.contentWindow) return;
+  const d = e.data || {};
+  if (d.type === 'tcr-bridge-hello') {
+    bridgeV = d.version;
+    if (!LS.get('tcr_app_imported', null)) importFromExtension(true);
+  } else if ((d.type === 'tcr-bridge-data' || d.type === 'tcr-bridge-error') && bridgeWait && bridgeWait.id === d.id) {
+    const w = bridgeWait; bridgeWait = null; d.type === 'tcr-bridge-data' ? w.res(d) : w.rej(new Error(d.message));
+  }
+});
+async function importFromExtension(auto) {
+  if (!bridgeV) { toast('No encuentro la extensión Chat Replay 1.9 o más nueva en este navegador'); return; }
+  toast('Trayendo tus cuentas, ajustes y chats de la extensión…', 6000);
+  try {
+    const id = Math.random().toString(36).slice(2);
+    const d = await new Promise((res, rej) => { bridgeWait = { id, res, rej }; bridge.contentWindow.postMessage({ type: 'tcr-bridge-export', id, withChats: true }, EXT_ORIGIN); setTimeout(() => { if (bridgeWait && bridgeWait.id === id) { bridgeWait = null; rej(new Error('la extensión no ha contestado')); } }, 120000); });
+    let skipped = 0;
+    for (const [k, v] of Object.entries(d.local || {})) { try { await chrome.storage.local.set({ [k]: v }); } catch { skipped++; } }
+    for (const [k, v] of Object.entries(d.sync || {})) { try { await chrome.storage.sync.set({ [k]: v }); } catch { skipped++; } }
+    for (const c of d.chats || []) {
+      const info = (d.infos || []).find(i => i.key === c.key) || { key: c.key, title: 'Chat', savedAt: Date.now() };
+      try { await DB.saveChat(c.key, c.data, info, null); } catch { skipped++; }
+    }
+    for (const l of d.links || []) if (l && l.vid) { try { await DB.put('links', l.vid, l); } catch { skipped++; } }
+    LS.set('tcr_app_imported', { at: Date.now(), version: d.version });
+    const acc = d.local && d.local.tcr_account;
+    toast(`✓ Traído de la extensión: ${(d.links || []).length} vídeos, ${(d.chats || []).length} chats${acc ? ', cuenta ' + acc.name : ''}${skipped ? ` (${skipped} cosas no cabían)` : ''}`, 5000);
+    setTimeout(() => location.reload(), 2200);
+  } catch (e) { if (!auto) toast('No se ha podido traer: ' + e.message, 5000); else console.warn(e); }
+}
+
+/* ===================================================================== */
 /*  Actualizaciones automáticas                                          */
 /* ===================================================================== */
 let APP_V = '?', APP_INFO = {};
@@ -673,7 +712,7 @@ async function checkUpdate() {
   try { [a, e] = await Promise.all([fetchJson('version.json'), fetchJson(EXT + 'manifest.json')]); } catch { return; }
   if (a.version === APP_V && e.version === EXT_V) return;
   let summary = a.version !== APP_V ? a.resumen : '';
-  if (!summary) { try { summary = (await fetchJson('../version.json')).resumen || ''; } catch {} }
+  if (!summary) { try { summary = (await fetchJson(EXT + '../version.json')).resumen || ''; } catch {} }
   const info = { from: `${APP_V} · ${EXT_V}`, to: `${a.version} · ${e.version}`, summary, at: Date.now() };
   const apply = () => {
     try { sessionStorage.setItem('tcr_app_updated', JSON.stringify(info)); } catch {}
@@ -710,6 +749,7 @@ if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) setInterval(() => fetc
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
 
+startBridge();
 (async () => {
   try { APP_INFO = await fetchJson('version.json'); APP_V = APP_INFO.version || '?'; } catch {}
   showUpdated();

@@ -17,7 +17,27 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="host.css">
 <script src="config.js"></script>
-<script src="../chat-replay-youtube/shared/web.js"></script>
+<script>
+/* Usa el chat de la extensión desde su repositorio (CHAT-DE-YT): así, cuando publicas una versión nueva de la extensión, la app la coge sola.
+   Si allí aún no está (o es más vieja), usa la copia que va con la app. */
+(function () {
+  function info(base) {
+    try {
+      var x = new XMLHttpRequest(); x.open('GET', base + 'manifest.json?t=' + Date.now(), false); x.send();
+      if (x.status !== 200) return null;
+      var v = JSON.parse(x.responseText).version;
+      var w = new XMLHttpRequest(); w.open('GET', base + 'shared/web.js?t=' + Date.now(), false); w.send();
+      return w.status === 200 ? v : null;
+    } catch (e) { return null; }
+  }
+  function cmp(a, b) { a = a.split('.'); b = b.split('.'); for (var i = 0; i < Math.max(a.length, b.length); i++) { var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
+  var C = window.CHAT_REPLAY || {}, list = C.extPaths || ['/CHAT-DE-YT/chat-replay-youtube/', '../chat-replay-youtube/'];
+  var best = null, bestV = null;
+  for (var i = 0; i < list.length; i++) { var u = new URL(list[i], location.href).href, v = info(u); if (v && (!bestV || cmp(v, bestV) > 0)) { best = u; bestV = v; } }
+  window.TCR_EXT = best || new URL('../chat-replay-youtube/', location.href).href;
+  document.write('<script src="' + window.TCR_EXT + 'shared/web.js"><\/script>');
+})();
+</script>
 </head>
 <body>
 <div id="root">

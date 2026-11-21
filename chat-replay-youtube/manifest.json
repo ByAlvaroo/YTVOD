@@ -72,6 +72,18 @@
       "matches": [
         "https://www.youtube.com/*"
       ]
+    },
+    {
+      "resources": [
+        "bridge.html",
+        "bridge.js",
+        "shared/*"
+      ],
+      "matches": [
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "https://byalvaroo.github.io/*"
+      ]
     }
   ],
   "minimum_chrome_version": "116",
