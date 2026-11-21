@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Ajustes · Chat Replay</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="win">
+  <aside id="side">
+    <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input id="q" type="search" placeholder="Buscar" autocomplete="off" spellcheck="false"><span id="qn"></span></label>
+    <button id="advSw" class="advsw" role="switch" aria-checked="false" title="Mostrar todos los ajustes o solo los básicos"><span>Opciones avanzadas</span><span class="tg" id="advTg"></span></button>
+    <nav id="nav"></nav>
+    <div class="press-card" title="Hecho por @byalvaro__">
+      <span class="press-in">HECHO POR</span>
+      <span class="stand-out">@BYALVARO__</span>
+    </div>
+  </aside>
+  <main id="main">
+    <button id="x" class="xbtn" title="Cerrar (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div id="content"></div>
+  </main>
+</div>
+<div id="splash" hidden>
+  <div class="paper">
+    <div class="press-in big">HECHO<br>POR</div>
+    <div class="stand-out big">@BYALVARO__</div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="shared/web.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

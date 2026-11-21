@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actualizar Chat Replay</title>
+<link rel="icon" href="icons/icon32.png">
+<style>
+  :root { color-scheme: dark; --bg:#141413; --card:#1f1f1e; --line:rgba(255,255,255,.1); --tx:#ecebe6; --mut:#a9a8a1; --blue:#1e6eff; --ok:#1f9d55; --warn:#ffcf7a; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--tx); font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; padding:24px 16px; }
+  .c { width:min(520px,100%); background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+  .hd { display:flex; gap:12px; align-items:center; margin-bottom:6px; }
+  .hd img { width:36px; height:36px; image-rendering:pixelated; }
+  h1 { font-size:18px; margin:0; }
+  .sub { color:var(--mut); font-size:13px; }
+  .sum { margin:14px 0 4px; padding:10px 12px; border-radius:10px; background:rgba(30,110,255,.12); color:#cfe0ff; font-weight:600; }
+  details { margin:8px 0 0; color:var(--mut); font-size:13px; }
+  details pre { white-space:pre-wrap; font:inherit; margin:6px 0 0; }
+  ol.steps { list-style:none; padding:0; margin:18px 0 0; }
+  ol.steps li { display:flex; gap:10px; align-items:center; padding:6px 0; color:var(--mut); }
+  ol.steps li .d { width:18px; height:18px; border-radius:50%; border:2px solid rgba(255,255,255,.2); flex:none; display:grid; place-items:center; font-size:11px; }
+  ol.steps li.on { color:var(--tx); } ol.steps li.on .d { border-color:var(--blue); border-top-color:transparent; animation:sp .8s linear infinite; }
+  ol.steps li.ok { color:var(--tx); } ol.steps li.ok .d { border-color:var(--ok); background:var(--ok); }
+  ol.steps li.ok .d::after { content:'✓'; color:#fff; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  .msg { margin-top:14px; font-size:13px; color:var(--mut); }
+  .err { margin-top:14px; padding:10px 12px; border-radius:10px; background:rgba(255,80,60,.12); color:#ffb4a8; font-size:13px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+  button, a.b { all:unset; cursor:pointer; padding:9px 14px; border-radius:10px; font-weight:600; font-size:13.5px; background:rgba(255,255,255,.08); color:var(--tx); }
+  button:hover, a.b:hover { background:rgba(255,255,255,.14); }
+  button.p { background:var(--blue); color:#fff; } button.p:hover { background:#3a82ff; }
+  button[disabled] { opacity:.5; cursor:default; }
+  .note { margin-top:16px; font-size:12px; color:var(--mut); }
+  code { background:rgba(255,255,255,.08); padding:1px 5px; border-radius:5px; font-size:12px; }
+  .by { margin-top:18px; font-size:11px; letter-spacing:.12em; color:#7d7c76; text-align:center; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+  <div class="c">
+    <div class="hd"><img src="icons/icon48.png" alt=""><div><h1 id="title">Actualizar Chat Replay</h1><div class="sub" id="sub">Comprobando…</div></div></div>
+    <div class="sum" id="sum" hidden></div>
+    <details id="notesBox" hidden><summary>Todas las novedades</summary><pre id="notes"></pre></details>
+    <div id="pick" hidden>
+      <p class="msg" id="pickTxt"></p>
+      <div class="row"><button class="p" id="pickBtn">Elegir la carpeta de la extensión</button><a class="b" id="manual1" target="_blank" rel="noopener">Hacerlo manual</a></div>
+      <p class="note">Elige la carpeta que cargaste en <code>chrome://extensions</code> (la que tiene <code>manifest.json</code> dentro; normalmente <code>chat-replay-youtube</code>). Chrome te preguntará si dejas que la extensión la modifique: elige <b>«Permitir en cada visita»</b> para que las siguientes actualizaciones sean de un solo clic. Solo se toca esa carpeta.</p>
+    </div>
+    <ol class="steps" id="steps" hidden>
+      <li data-s="dl"><span class="d"></span>Descargando la versión nueva de GitHub</li>
+      <li data-s="chk"><span class="d"></span>Comprobando que es de esta extensión</li>
+      <li data-s="wr"><span class="d"></span><span id="wrTxt">Reemplazando los archivos</span></li>
+      <li data-s="rl"><span class="d"></span>Reiniciando la extensión y recargando YouTube</li>
+    </ol>
+    <div class="err" id="err" hidden></div>
+    <div class="row" id="errRow" hidden><button class="p" id="retry">Reintentar</button><button id="other">Elegir otra carpeta</button><a class="b" id="manual2" target="_blank" rel="noopener">Hacerlo manual</a></div>
+    <p class="msg" id="done" hidden></p>
+    <div class="by">HECHO POR @BYALVARO__</div>
+  </div>
+  <script type="module" src="update.js"></script>
+</body>
+</html>

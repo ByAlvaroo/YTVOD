@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="YTVOD">
+<title>YTVOD</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="host.css">
+<script src="config.js"></script>
+<script src="../chat-replay-youtube/shared/web.js"></script>
+</head>
+<body>
+<div id="root">
+  <header id="top">
+    <a id="logo" href="#/" title="Inicio">
+      <img src="icons/icon-192.png" alt=""><span>YTVOD</span>
+    </a>
+    <label id="sbox">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+      <input id="q" type="search" placeholder="Buscar vídeos con chat…" autocomplete="off" spellcheck="false" enterkeyhint="search">
+    </label>
+    <div id="acts">
+      <button class="addb" id="bAdd" title="Añadir un vídeo"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Añadir</span></button>
+      <button class="ib" id="bSettings" title="Ajustes del chat"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+      <button class="ib" id="bMenu" title="Más"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </header>
+
+  <main id="home" hidden></main>
+
+  <main id="watch" hidden>
+    <div id="stage">
+      <div id="pcol">
+        <div id="pwrap">
+          <button id="fsx" title="Salir de pantalla completa"><svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+          <div id="pbox"><div id="player"></div></div>
+        </div>
+        <canvas id="heat" hidden title="Actividad del chat · pulsa para saltar"></canvas>
+        <div id="vinfo">
+          <h1 id="vtitle"></h1>
+          <div id="vrow">
+            <div id="chan">
+              <span id="avatar"></span>
+              <div><div id="vchan"></div><div id="vsub">Con chat de Twitch</div></div>
+            </div>
+            <span class="sp"></span>
+            <button class="pill" id="bChat" title="Mostrar u ocultar el chat (Alt+C)"><svg viewBox="0 0 24 24"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 3.5V17H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg><span>Chat</span></button>
+            <button class="pill" id="bFs" title="Pantalla completa con el chat (F)"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Pantalla completa</span></button>
+            <button class="pill" id="bShare" title="Copiar enlace"><svg viewBox="0 0 24 24"><path d="M14 5l6 6-6 6M20 11H9a5 5 0 0 0-5 5v3"/></svg><span>Compartir</span></button>
+            <a class="pill" id="bYt" target="_blank" rel="noopener" title="Abrir en YouTube"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span>YouTube</span></a>
+          </div>
+          <div id="vbox"></div>
+        </div>
+        <section id="more"></section>
+      </div>
+      <div id="split" title="Arrastra para cambiar el ancho del chat"></div>
+      <aside id="ccol"><div id="ccard"><iframe id="panel" title="Chat de Twitch" allow="autoplay; clipboard-write" allowtransparency="true"></iframe></div></aside>
+    </div>
+  </main>
+</div>
+
+<div id="modal" hidden><iframe id="mframe" title="Ajustes del chat" allow="autoplay; clipboard-write"></iframe></div>
+<div id="sheet" hidden></div>
+<div id="toast"></div>
+<div id="upd" hidden></div>
+
+<script type="module" src="host.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Chat Replay</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<div id="app" data-theme="claude" data-mode="sidebar">
+  <header id="bar">
+    <div class="ttl"><span class="live-dot"></span><span id="title">Chat de la emisión</span></div>
+    <button id="chip" class="chip" hidden></button>
+    <div class="tools">
+      <button class="ib" data-act="marks" title="Marcadores (Alt+B)" hidden>%mark%</button>
+      <button class="ib" data-act="filter" title="Qué mensajes se ven">%filter%</button>
+      <button class="ib" data-act="search" title="Buscar en el chat (Ctrl+F)">%search%</button>
+      <button class="ib" data-act="sync" title="Sincronización">%sync%</button>
+      <button class="ib" data-act="settings" title="Ajustes">%gear%</button>
+      <button class="ib" data-act="close" title="Ocultar chat (Alt+C)">%close%</button>
+    </div>
+  </header>
+
+  <div id="graphWrap" hidden>
+    <canvas id="graph"></canvas>
+    <div id="graphMark"></div>
+    <div id="graphTip" hidden></div>
+  </div>
+
+  <div id="warn" hidden></div>
+
+  <div id="searchBar" hidden>
+    <div id="sMode" class="smode"><button data-m="msgs" class="on" title="Buscar en los mensajes">Mensajes</button><button data-m="users" title="Buscar usuarios y ver sus interacciones">Usuarios</button></div>
+    <div class="sbox">%search%<input id="q" type="search" placeholder="Buscar palabra o from:usuario" autocomplete="off" spellcheck="false"></div>
+    <span id="qCount"></span>
+    <button class="ib" data-act="searchClose" title="Cerrar">%close%</button>
+  </div>
+  <div id="results" hidden></div>
+
+  <main id="chat"><div id="list"></div></main>
+  <div id="combo" hidden></div>
+  <button id="resume" hidden></button>
+
+  <section id="empty" hidden></section>
+
+  <div id="loading" hidden>
+    <div class="ring"></div>
+    <div id="loadStage">Cargando…</div>
+    <div class="pbar"><i id="loadBar"></i></div>
+    <button id="loadCancel" class="btn ghost sm">Cancelar</button>
+  </div>
+
+  <div id="pop" hidden></div>
+  <div id="pick" hidden></div>
+  <div id="rhL" title="Arrastra para cambiar el ancho"></div>
+  <div class="rh rh-bl" data-edge="bl"></div>
+  <div class="rh rh-br" data-edge="br"></div>
+  <div id="toast"></div>
+</div>
+<script src="shared/web.js"></script>
+<script type="module" src="panel.js"></script>
+</body>
+</html>

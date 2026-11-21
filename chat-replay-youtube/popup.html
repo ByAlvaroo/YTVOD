@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@800&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; width: 320px; font: 13px/1.45 Inter, "Segoe UI", system-ui, sans-serif; background: #262624; color: #f5f4ee; }
+  header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid #34332f; background: #1f1e1d; }
+  header img { width: 28px; height: 28px; }
+  header b { font-size: 14px; }
+  header small { display: block; color: #a6a39a; font-size: 11.5px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 16px; border-bottom: 1px solid #34332f; }
+  .tg { width: 38px; height: 22px; border-radius: 999px; border: 0; background: #45443f; position: relative; cursor: pointer; padding: 0; }
+  .tg::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .18s; }
+  .tg.on { background: #4c8dff; } .tg.on::after { transform: translateX(16px); }
+  select { background: #1b1a19; color: #f5f4ee; border: 1px solid #45443f; border-radius: 7px; padding: 5px 8px; font: inherit; }
+  .btns { display: grid; gap: 8px; padding: 14px 16px; }
+  button.b { height: 36px; border-radius: 8px; border: 1px solid #45443f; background: #3a3936; color: #f5f4ee; font: 600 13px Inter, sans-serif; cursor: pointer; }
+  button.b.p { background: #4c8dff; border-color: #4c8dff; color: #fff; }
+  button.b:hover { filter: brightness(1.1); }
+  button.b.sm { height: 28px; padding: 0 10px; font-size: 12px; }
+  #acctTxt b { color: #8fbcff; }
+  #msg { padding: 0 16px 10px; color: #a6a39a; font-size: 12px; min-height: 16px; }
+  .press { margin: 0 16px 16px; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;
+    background: radial-gradient(120% 90% at 20% 10%, #e8c7a3, #c79a72); }
+  .press .in { font: 800 12px Outfit, sans-serif; color: #6e4b33; letter-spacing: .06em; text-shadow: 0 1px 0 rgba(255,236,214,.55), 0 -1px 0 rgba(60,35,18,.45); }
+  .press .out { font: 800 14px Outfit, sans-serif; color: #e4bf98; background: #4b3122; padding: 5px 8px 4px; border-radius: 5px; text-shadow: 0 1px 0 #b98d66, 0 2px 3px rgba(0,0,0,.5); box-shadow: inset 0 2px 5px rgba(0,0,0,.6); }
+</style>
+</head>
+<body>
+<header><img src="icons/icon48.png" alt=""><div><b>Chat Replay</b><small>Chat de Twitch en YouTube</small></div></header>
+<div class="row"><span id="acctTxt">Cuenta</span><button class="b sm" id="acctBtn">Iniciar sesión</button></div>
+<div class="row"><span>Extensión activada</span><button class="tg" data-k="enabled"></button></div>
+<div class="row"><span>Abrir el chat automáticamente</span><button class="tg" data-k="autoOpen"></button></div>
+<div class="row"><span>Sonidos</span><button class="tg" data-k="soundOn"></button></div>
+<div class="row"><span>Rendimiento</span>
+  <select data-k="perfPreset"><option value="quality">Calidad</option><option value="balanced">Equilibrado</option><option value="saver">Ahorro</option><option value="ultra">Ultra ahorro</option><option value="custom" disabled>Personalizado</option></select></div>
+<div class="btns">
+  <button class="b p" id="toggle">Mostrar / ocultar chat</button>
+  <button class="b" id="settings">Abrir ajustes, Drive y biblioteca</button>
+</div>
+<div id="msg"></div>
+<div class="press"><span class="in">HECHO POR</span><span class="out">@BYALVARO__</span></div>
+<script type="module" src="popup.js"></script>
+</body>
+</html>

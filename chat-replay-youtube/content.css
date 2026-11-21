@@ -1,0 +1,63 @@
+/* Chat Replay · estilos en la página de YouTube */
+#tcr-host { box-sizing: border-box; display: block; color-scheme: normal; }
+#tcr-host iframe { display: block; width: 100%; height: 100%; border: 0; background: transparent; color-scheme: normal; }
+#tcr-host.tcr-sidebar { position: relative; width: 100%; margin: 0 0 16px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(127,127,127,.22); box-shadow: 0 2px 12px rgba(0,0,0,.18); }
+#tcr-host.tcr-overlay { position: absolute; z-index: 45; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,.4); }
+
+/* Botón azul del reproductor */
+.ytp-button.tcr-btn { position: relative; display: inline-flex !important; align-items: center; justify-content: center; opacity: .95; flex: none; }
+.ytp-right-controls-left .ytp-button.tcr-btn svg { width: 100%; height: 100%; }
+.ytp-button.tcr-btn svg { pointer-events: none; }
+.tcr-btn .tcr-bubble { fill: rgba(62,140,255,.18); stroke: #3e8cff; stroke-width: 2; stroke-linejoin: round; transition: fill .18s; }
+.tcr-btn .tcr-lines { stroke: #8fbcff; stroke-width: 2; stroke-linecap: round; }
+.tcr-btn .tcr-dot { fill: #3e8cff; stroke: #0f0f0f; stroke-width: 1.5; opacity: 0; transition: opacity .2s; }
+.tcr-btn.tcr-has .tcr-dot { opacity: 1; }
+.tcr-btn.tcr-on .tcr-bubble { fill: #3e8cff; }
+.tcr-btn.tcr-on .tcr-lines { stroke: #fff; }
+.tcr-btn:hover .tcr-bubble { fill: rgba(62,140,255,.45); }
+.tcr-btn.tcr-on:hover .tcr-bubble { fill: #5aa0ff; }
+
+/* Ventana de ajustes */
+#tcr-modal { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; background: rgba(0,0,0,0); transition: background .18s ease; color-scheme: normal; }
+#tcr-modal.tcr-open { background: rgba(0,0,0,.55); }
+#tcr-modal iframe { width: min(1180px, 94vw); height: min(840px, 90vh); border: 0; border-radius: 16px; background: transparent; box-shadow: 0 30px 80px rgba(0,0,0,.55); opacity: 0; transform: translateY(10px) scale(.985); transition: opacity .18s ease, transform .2s cubic-bezier(.2,.8,.2,1); color-scheme: normal; }
+#tcr-modal.tcr-open iframe { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { #tcr-modal, #tcr-modal iframe { transition: none; } }
+
+/* Pantalla completa «al lado»: vídeo más pequeño a la izquierda, chat fijo a la derecha */
+#tcr-host.tcr-fsside { position: fixed; top: 0; right: 0; bottom: 0; height: 100vh; z-index: 2147482000; border-left: 1px solid rgba(255,255,255,.08); background: #000; }
+html.tcr-fs-side #movie_player,
+html.tcr-fs-side ytd-watch-flexy[fullscreen] #player-container,
+html.tcr-fs-side ytd-watch-flexy[fullscreen] #player-full-bleed-container,
+html.tcr-fs-side ytd-watch-flexy[fullscreen] #full-bleed-container,
+html.tcr-fs-side ytd-watch-flexy[fullscreen] #player-container-outer,
+html.tcr-fs-side ytd-watch-flexy[fullscreen] #player-container-inner {
+  width: calc(100vw - var(--tcr-w, 380px)) !important; max-width: none !important; min-width: 0 !important;
+}
+html.tcr-fs-side ytd-watch-flexy[fullscreen] #player-container-inner { padding-top: 0 !important; height: 100vh !important; }
+html.tcr-fs-side #movie_player { height: 100vh !important; background: #000; }
+/* Caso en que el propio reproductor está en pantalla completa: se encoge el contenido por dentro */
+#movie_player.tcr-fs-side-in .html5-video-container { position: absolute !important; inset: 0 var(--tcr-w, 380px) 0 0 !important; }
+#movie_player.tcr-fs-side-in video.html5-main-video { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; object-fit: contain; }
+#movie_player.tcr-fs-side-in .ytp-chrome-bottom { width: calc(100% - var(--tcr-w, 380px) - 24px) !important; }
+#movie_player.tcr-fs-side-in .ytp-chrome-top, #movie_player.tcr-fs-side-in .ytp-gradient-bottom, #movie_player.tcr-fs-side-in .ytp-gradient-top { right: var(--tcr-w, 380px) !important; width: auto !important; }
+html.tcr-fs-side #movie_player .html5-video-container { position: absolute !important; inset: 0 !important; }
+html.tcr-fs-side #movie_player video.html5-main-video { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; object-fit: contain; }
+
+/* Mapa de calor / marcadores sobre la barra de progreso */
+.tcr-bar { position: absolute; left: 0; right: 0; bottom: 100%; height: 10px; margin-bottom: 1px; pointer-events: none; z-index: 33; }
+.tcr-bar.tcr-bar-heat { height: 30px; }
+.tcr-bar canvas { display: block; width: 100%; height: 100%; }
+/* Modo cine total: translúcido y se esconde si no mueves el ratón (cuando YouTube oculta los controles) */
+#tcr-host.tcr-ghost { opacity: .92; transition: opacity .45s ease; box-shadow: none; }
+#movie_player.ytp-autohide #tcr-host.tcr-ghost:not(:hover) { opacity: 0; }
+
+/* Círculo azul «este vídeo tiene chat» junto al canal (mismo tamaño que el verificado) */
+.tcr-has-chat { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 50%; background: #3e8cff; margin: 0 0 0 5px; vertical-align: middle; align-self: center; box-shadow: 0 0 0 1px rgba(0,0,0,.15); cursor: help; }
+ytd-channel-name { align-items: center; }
+.ytContentMetadataViewModelMetadataRow .tcr-has-chat, .yt-content-metadata-view-model-wiz__metadata-row .tcr-has-chat { margin: 0 2px 0 4px; }
+/* Duración de la miniatura en azul translúcido en los vídeos con chat */
+.tcr-card-chat badge-shape.ytBadgeShapeThumbnailDefault,
+.tcr-card-chat .badge-shape-wiz--thumbnail-default,
+.tcr-card-chat ytd-thumbnail-overlay-time-status-renderer #time-status,
+.tcr-card-chat ytd-thumbnail-overlay-time-status-renderer .badge-shape-wiz { background-color: rgba(30, 110, 255, .72) !important; color: #fff !important; }
