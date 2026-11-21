@@ -8,6 +8,24 @@
   --safe-t: env(safe-area-inset-top, 0px); --safe-b: env(safe-area-inset-bottom, 0px);
   --shadow: 0 1px 2px rgba(20,21,26,.04), 0 8px 24px rgba(20,21,26,.06);
 }
+/* modo oscuro: elegido a mano o automático (según el sistema) */
+html[data-theme="dark"] {
+  --bg: #0f1014; --soft: #17181d; --soft2: #1e2027; --card: #17181d; --fg: #f2f3f7; --fg2: #c9cbd4; --muted: #8b8fa0;
+  --line: #23252d; --line2: #2e3039; --hover: #1c1e25;
+  --accent: #7b6dff; --accent2: #6a5bff; --accent-soft: rgba(123,109,255,.16);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+html[data-theme="dark"] #top { background: rgba(15,16,20,.9); }
+html[data-theme="dark"] .has { background: rgba(15,16,20,.85); color: #b4abff; }
+html[data-theme="dark"] .notice { background: rgba(240,179,74,.1); color: #f3d08b; border-color: rgba(240,179,74,.28); }
+html[data-theme="dark"] .notice.info, html[data-theme="dark"] #upd .sum { color: #cdc7ff; border-color: rgba(123,109,255,.3); }
+html[data-theme="dark"] #toast { background: #f2f3f7; color: #14151a; }
+html[data-theme="dark"] .row { scrollbar-color: #33353f transparent; }
+html[data-theme="dark"] .addb { box-shadow: 0 6px 16px rgba(123,109,255,.25); }
+#bTheme .moon { display: none; }
+html[data-theme="dark"] #bTheme .sun { display: none; }
+html[data-theme="dark"] #bTheme .moon { display: block; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); overscroll-behavior: none; }
 body { font: 14px/1.45 var(--ui); -webkit-font-smoothing: antialiased; }
@@ -130,6 +148,22 @@ body.dragging { cursor: col-resize; user-select: none; }
 #fsx { display: none; position: absolute; top: 12px; left: 12px; z-index: 3; width: 38px; height: 38px; place-items: center; border-radius: 12px; border: 0; background: rgba(0,0,0,.55); color: #fff; opacity: 0; transition: opacity .2s; }
 #stage.fs #pcol:hover #fsx { opacity: .9; }
 
+/* pantalla completa propia (iPad / iPhone / app instalada): todo el hueco para el vídeo y el chat */
+body.pfs #top { display: none; }
+body.pfs #watch { overflow: hidden; }
+body.pfs #stage { position: fixed; inset: 0; z-index: 30; max-width: none; margin: 0; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); gap: 0; height: 100%; background: #000; align-items: stretch; flex-direction: row; }
+body.pfs #stage #pcol { flex: 1; }
+body.pfs #stage #ccol { flex: none; width: min(var(--chat-w), 40vw) !important; }
+body.pfs #fsx { display: grid; opacity: .85; }
+body.pfs #stage #ccol { position: relative; top: 0; height: auto; min-height: 0; }
+@media (orientation: portrait) {
+  body.pfs #stage { flex-direction: column; }
+  body.pfs #stage #pcol { flex: none; display: block; }
+  body.pfs #stage.fs #pwrap { display: block; }
+  body.pfs #stage.fs #pbox { aspect-ratio: 16/9; height: auto; flex: none; }
+  body.pfs #stage #ccol { flex: 1; width: auto !important; }
+}
+
 /* tablet en horizontal / pantallas medianas */
 @media (max-width: 1180px) and (min-width: 901px) { :root { --chat-w: 340px; } #stage { padding: 18px 18px 32px; gap: 18px; } }
 
@@ -176,6 +210,8 @@ body.dragging { cursor: col-resize; user-select: none; }
   #ccol { position: relative; top: 0; height: 100%; min-height: 0; width: min(var(--chat-w), 42vw) !important; }
   #ccard { border-radius: 0; border: 0; box-shadow: none; }
 }
+
+@media (max-width: 480px) { #bTheme { display: none; } }
 
 /* --- Ajustes (ventana de la extensión) --- */
 #modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(20,21,26,0); transition: background .18s ease; }

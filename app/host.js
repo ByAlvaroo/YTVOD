@@ -30,6 +30,17 @@ function toast(msg, ms = 2800) { const t = $('toast'); t.textContent = msg; t.cl
 const fmtDur = s => { s = Math.round(s || 0); const hh = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; const p = n => String(n).padStart(2, '0'); return hh ? `${hh}:${p(m)}:${p(x)}` : `${m}:${p(x)}`; };
 const decode = t => { const d = document.createElement('textarea'); d.innerHTML = t || ''; return d.value; };
 
+/* ---------- Registro de errores (menú → Ver errores) ---------- */
+const ERRS = [];
+function logErr(where, e) {
+  const msg = (e && (e.message || e.reason && (e.reason.message || e.reason))) || String(e);
+  ERRS.push(`[${new Date().toLocaleTimeString('es-ES')}] ${where}: ${msg}`); if (ERRS.length > 60) ERRS.shift();
+}
+function watchErrors(win, where) {
+  try { win.addEventListener('error', e => logErr(where, e.error || e)); win.addEventListener('unhandledrejection', e => logErr(where, e)); } catch {}
+}
+watchErrors(window, 'app');
+
 /* ---------- Clave de Google (para leer Drive y buscar en YouTube) ---------- */
 function apiKey() { return LS.get('tcr_api_key_user', '') || CFG.apiKey || ''; }
 function syncKey() { try { localStorage.setItem('tcr_api_key', apiKey()); } catch {} }
@@ -309,6 +320,7 @@ const post = m => { if (port) try { port.postMessage(m); } catch {} };
 
 // panel del chat (se carga una sola vez y se le van pasando los vídeos, como en YouTube)
 panelEl.addEventListener('load', () => {
+  watchErrors(panelEl.contentWindow, 'chat');
   const ch = new MessageChannel();
   port = ch.port1;
   port.onmessage = e => onPanel(e.data);
@@ -419,6 +431,7 @@ function renderMore(vid) {
   $('more').replaceChildren(...(list.length ? [h('h2', { text: 'Más vídeos con chat' }), h('div', { class: 'grid' }, list.map(card))] : []));
 }
 function leaveVideo() {
+  if (pseudoFs) setPseudoFs(false);
   if (!cur) return;
   saveProgress();
   cur = null; clearInterval(timeIv); clearInterval(progIv);
@@ -437,7 +450,8 @@ function onYtError(code) {
 }
 
 /* --- Colocación del chat --- */
-const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+let pseudoFs = false;   // «pantalla completa» propia cuando el navegador no deja (iPad, iPhone, app instalada)
+const isFs = () => pseudoFs || !!(document.fullscreenElement || document.webkitFullscreenElement);
 const chatW = () => parseInt(getComputedStyle(document.documentElement).getPropertyValue('--chat-w')) || 380;
 function setChatW(w) { w = Math.round(Math.min(Math.max(260, w), window.innerWidth * 0.6)); document.documentElement.style.setProperty('--chat-w', w + 'px'); }
 setChatW(LS.get('tcr_app_cw', 380));
@@ -458,14 +472,23 @@ function layout() {
   drawHeat();
 }
 $('bChat').onclick = () => setChat(!chatOpen);
+function setPseudoFs(on) {
+  pseudoFs = !!on;
+  document.body.classList.toggle('pfs', pseudoFs);
+  layout(); setTimeout(drawHeat, 50);
+}
 async function toggleFs() {
-  try {
-    if (isFs()) { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
-    const f = stage.requestFullscreen || stage.webkitRequestFullscreen;
-    if (!f) { toast('Aquí no se puede: gira la pantalla para ver el vídeo y el chat a la vez'); return; }
-    await f.call(stage);
-    try { await screen.orientation.lock('landscape'); } catch {}
-  } catch { toast('No se ha podido poner en pantalla completa'); }
+  if (pseudoFs) { setPseudoFs(false); return; }
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch {}
+    return;
+  }
+  const f = stage.requestFullscreen || stage.webkitRequestFullscreen;
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (f && !standalone) {
+    try { await f.call(stage); try { await screen.orientation.lock('landscape'); } catch {} return; } catch {}
+  }
+  setPseudoFs(true);   // el navegador no deja: ocupa toda la pantalla con el vídeo y el chat al lado
 }
 $('bFs').onclick = toggleFs;
 $('bShare').onclick = async () => {
@@ -543,6 +566,7 @@ function handleKey(code, alt) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !$('modal').hidden) { closeModal(); return; }
   if (e.key === 'Escape' && !$('sheet').hidden) { closeSheet(); return; }
+  if (e.key === 'Escape' && pseudoFs) { setPseudoFs(false); return; }
   const tg = e.target;
   if (tg && tg.closest && tg.closest('input, textarea, [contenteditable=""], [contenteditable="true"]')) return;
   if (!cur) { if (e.key === '/' ) { e.preventDefault(); $('q').focus(); } return; }
@@ -636,6 +660,26 @@ function openKey() {
     inp, out,
     h('div', { class: 'acts' }, h('button', { class: 'btn', onclick: closeSheet }, 'Cerrar'), h('button', { class: 'btn p', onclick: save }, 'Guardar y probar')));
 }
+/* --- Tema claro / oscuro / automático --- */
+const darkMq = matchMedia('(prefers-color-scheme: dark)');
+const themeName = t => ({ light: 'Claro', dark: 'Oscuro', auto: 'Automático (como el sistema)' })[t];
+function applyTheme() {
+  const t = LS.get('tcr_app_theme', 'auto');
+  const dark = t === 'dark' || (t === 'auto' && darkMq.matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.querySelector('meta[name=theme-color]').setAttribute('content', dark ? '#0f1014' : '#ffffff');
+  $('bTheme').title = 'Tema: ' + themeName(t) + ' · pulsa para cambiar';
+}
+function setTheme(t) { LS.set('tcr_app_theme', t); applyTheme(); toast('Tema: ' + themeName(t)); }
+darkMq.addEventListener && darkMq.addEventListener('change', applyTheme);
+$('bTheme').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+applyTheme();
+function openTheme() {
+  const cur = LS.get('tcr_app_theme', 'auto');
+  const opt = (t, icon) => h('button', { class: 'mi', onclick: () => { setTheme(t); closeSheet(); } }, h('span', { class: 'ico', text: icon }), h('div', null, themeName(t), cur === t ? h('small', { text: 'Elegido' }) : null));
+  sheet(h('h3', { text: 'Tema' }), opt('light', '☀'), opt('dark', '☾'), opt('auto', '◐'));
+}
+
 let installEvt = null;
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
 function openMenu() {
@@ -645,9 +689,17 @@ function openMenu() {
     mi('＋', 'Añadir un vídeo', 'Pega un enlace de YouTube', openAdd),
     mi('🔎', 'Buscar vídeos nuevos ahora', 'Mira tu Drive y busca en YouTube los títulos idénticos', async () => { toast('Buscando vídeos nuevos…'); const c = await detect({ force: true }); toast(c ? 'Hay vídeos nuevos en el inicio' : 'No hay vídeos nuevos'); }),
     bridgeV ? mi('⇄', 'Traer todo de la extensión', 'Cuentas, ajustes, sincronización y chats de Chat Replay ' + bridgeV, () => importFromExtension(false)) : null,
+    mi('◐', 'Tema', themeName(LS.get('tcr_app_theme', 'auto')), openTheme),
     mi('🔑', 'Clave de Google', apiKey() ? 'Puesta ✓' : 'Falta: la app la necesita para leer Drive', openKey),
     !standalone ? mi('⬇', 'Instalar la app', installEvt ? 'Se queda como una aplicación más' : (/iPad|iPhone|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document ? 'Compartir → Añadir a pantalla de inicio' : 'Menú del navegador → Instalar YTVOD'), async () => { if (installEvt) { installEvt.prompt(); installEvt = null; } else toast(/iPad|iPhone/.test(navigator.userAgent) || 'ontouchend' in document ? 'En Safari: botón Compartir → «Añadir a pantalla de inicio»' : 'En Chrome o Edge: menú ⋮ → «Instalar YTVOD»', 5000); }) : null,
+    ERRS.length ? mi('⚠', 'Ver errores (' + ERRS.length + ')', 'Para saber qué falla en este dispositivo', openErrors) : null,
     mi('ⓘ', 'Acerca de', `App ${APP_V} · Chat ${chrome.runtime.getManifest().version}`, openAbout));
+}
+function openErrors() {
+  const txt = [navigator.userAgent, 'Chat: ' + EXT, ...ERRS].join('\n');
+  sheet(h('h3', { text: 'Errores' }), h('p', { text: 'Copia esto y pásaselo a Claude.' }),
+    h('pre', { style: 'white-space:pre-wrap;font-size:12px;background:var(--soft);padding:12px;border-radius:12px;max-height:50vh;overflow:auto', text: txt }),
+    h('div', { class: 'acts' }, h('button', { class: 'btn', onclick: closeSheet }, 'Cerrar'), h('button', { class: 'btn p', onclick: async () => { try { await navigator.clipboard.writeText(txt); toast('Copiado'); } catch { toast('Mantén pulsado el texto para copiarlo'); } } }, 'Copiar')));
 }
 function openAbout() {
   sheet(h('div', { class: 'brand' }, h('img', { src: 'icons/icon-192.png', alt: '' }), h('h3', { style: 'margin:0', text: 'YTVOD' })),

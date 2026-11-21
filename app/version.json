@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
-  "resumen": "Primera versión de YTVOD: los vídeos con chat de Twitch, en el PC, el iPad y el móvil.",
-  "notes": "- Catálogo solo con vídeos que tienen chat (por canal, aleatorios, continuar viendo y buscador).\n- Detecta sola los vídeos de YouTube con el mismo título que los chats de tu Drive.\n- El chat es el de la extensión Chat Replay: mismos ajustes, sincronización y configuración de ByAlvaro.\n- Se actualiza sola desde GitHub."
+  "version": "1.1.0",
+  "resumen": "Modo oscuro y claro, y pantalla completa con el chat también en el iPad y el móvil.",
+  "notes": "- Tema claro, oscuro o automático (botón de la luna/sol o menú ☰ → Tema)\n- Pantalla completa con el chat al lado en el iPad, el iPhone y la app instalada\n- Menú ☰ → Ver errores, para saber qué falla en un dispositivo\n- El aviso de «Falta la clave» desaparece al guardarla"
 }
