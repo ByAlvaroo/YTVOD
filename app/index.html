@@ -26,8 +26,8 @@
 <link rel="stylesheet" href="host.css">
 <script src="config.js"></script>
 <script>
-/* Usa el chat de la extensión desde su repositorio (CHAT-DE-YT): así, cuando publicas una versión nueva de la extensión, la app la coge sola.
-   Si allí aún no está (o es más vieja), usa la copia que va con la app. */
+/* El chat sale de la copia que va con la app (la extensión de Chrome va aparte y no se toca).
+*/
 (function () {
   function info(base) {
     try {
@@ -39,7 +39,7 @@
     } catch (e) { return null; }
   }
   function cmp(a, b) { a = a.split('.'); b = b.split('.'); for (var i = 0; i < Math.max(a.length, b.length); i++) { var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
-  var C = window.CHAT_REPLAY || {}, list = C.extPaths || ['/CHAT-DE-YT/chat-replay-youtube/', '../chat-replay-youtube/'];
+  var C = window.CHAT_REPLAY || {}, list = C.extPaths || ['../chat-replay-youtube/'];
   var best = null, bestV = null;
   for (var i = 0; i < list.length; i++) { var u = new URL(list[i], location.href).href, v = info(u); if (v && (!bestV || cmp(v, bestV) > 0)) { best = u; bestV = v; } }
   window.TCR_EXT = best || new URL('../chat-replay-youtube/', location.href).href;

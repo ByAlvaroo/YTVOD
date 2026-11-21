@@ -43,6 +43,7 @@ export async function fetchFeed() {
 }
 
 export async function isPublisher() {
+  if (globalThis.__TCR_WEB) return false;   // la app YTVOD nunca publica: solo lee la configuración de ByAlvaro
   const a = await getAccount();
   const p = await getL(PUB_KEY, {});
   return !!(a && isByAlvaro(a.slug) && p.token && p.owner && p.repo);

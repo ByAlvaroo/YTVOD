@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
-  "resumen": "Modo oscuro y claro, y pantalla completa con el chat también en el iPad y el móvil.",
-  "notes": "- Tema claro, oscuro o automático (botón de la luna/sol o menú ☰ → Tema)\n- Pantalla completa con el chat al lado en el iPad, el iPhone y la app instalada\n- Menú ☰ → Ver errores, para saber qué falla en un dispositivo\n- El aviso de «Falta la clave» desaparece al guardarla"
+  "version": "1.2.0",
+  "resumen": "YTVOD va totalmente aparte de la extensión: no la cambia y nunca publica en la configuración de ByAlvaro.",
+  "notes": "- La app usa su propia copia del chat\n- Solo lee la configuración de ByAlvaro, nunca la publica\n- Ya no hace falta ninguna versión especial de la extensión"
 }

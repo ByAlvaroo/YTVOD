@@ -52,6 +52,8 @@ async function startBackground() {
   if (navigator.locks && navigator.locks.request) navigator.locks.request('tcr-web-background', () => new Promise(() => { run().catch(e => console.error('Segundo plano', e)); }));
   else run().catch(e => console.error('Segundo plano', e));
 }
+// la app va totalmente aparte de la extensión y nunca publica nada en la configuración de ByAlvaro
+chrome.storage.local.remove(['tcr_pub']);
 startBackground();
 
 /* ===================================================================== */
@@ -688,7 +690,6 @@ function openMenu() {
   sheet(h('div', { class: 'brand' }, h('img', { src: 'icons/icon-192.png', alt: '' }), h('div', null, h('h3', { style: 'margin:0', text: 'YTVOD' }), h('div', { class: 'sign', text: 'HECHO POR @BYALVARO__' }))),
     mi('＋', 'Añadir un vídeo', 'Pega un enlace de YouTube', openAdd),
     mi('🔎', 'Buscar vídeos nuevos ahora', 'Mira tu Drive y busca en YouTube los títulos idénticos', async () => { toast('Buscando vídeos nuevos…'); const c = await detect({ force: true }); toast(c ? 'Hay vídeos nuevos en el inicio' : 'No hay vídeos nuevos'); }),
-    bridgeV ? mi('⇄', 'Traer todo de la extensión', 'Cuentas, ajustes, sincronización y chats de Chat Replay ' + bridgeV, () => importFromExtension(false)) : null,
     mi('◐', 'Tema', themeName(LS.get('tcr_app_theme', 'auto')), openTheme),
     mi('🔑', 'Clave de Google', apiKey() ? 'Puesta ✓' : 'Falta: la app la necesita para leer Drive', openKey),
     !standalone ? mi('⬇', 'Instalar la app', installEvt ? 'Se queda como una aplicación más' : (/iPad|iPhone|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document ? 'Compartir → Añadir a pantalla de inicio' : 'Menú del navegador → Instalar YTVOD'), async () => { if (installEvt) { installEvt.prompt(); installEvt = null; } else toast(/iPad|iPhone/.test(navigator.userAgent) || 'ontouchend' in document ? 'En Safari: botón Compartir → «Añadir a pantalla de inicio»' : 'En Chrome o Edge: menú ⋮ → «Instalar YTVOD»', 5000); }) : null,
@@ -710,48 +711,6 @@ function openAbout() {
 }
 $('bAdd').onclick = openAdd;
 $('bMenu').onclick = openMenu;
-
-/* ===================================================================== */
-/*  Traer todo de la extensión (cuentas, ajustes, sincronización, chats) */
-/* ===================================================================== */
-const EXT_ID = CFG.extensionId || 'heimiajbpknkogchnefpcdelmgmenhgd';
-const EXT_ORIGIN = 'chrome-extension://' + EXT_ID;
-let bridge = null, bridgeV = null, bridgeWait = null;
-function startBridge() {
-  if (!/Chrome|Edg\//.test(navigator.userAgent) || /Mobile|Android|iPad|iPhone/.test(navigator.userAgent)) return;
-  bridge = h('iframe', { src: EXT_ORIGIN + '/bridge.html', style: 'display:none', title: 'Chat Replay' });
-  document.body.append(bridge);
-}
-addEventListener('message', e => {
-  if (e.origin !== EXT_ORIGIN || !bridge || e.source !== bridge.contentWindow) return;
-  const d = e.data || {};
-  if (d.type === 'tcr-bridge-hello') {
-    bridgeV = d.version;
-    if (!LS.get('tcr_app_imported', null)) importFromExtension(true);
-  } else if ((d.type === 'tcr-bridge-data' || d.type === 'tcr-bridge-error') && bridgeWait && bridgeWait.id === d.id) {
-    const w = bridgeWait; bridgeWait = null; d.type === 'tcr-bridge-data' ? w.res(d) : w.rej(new Error(d.message));
-  }
-});
-async function importFromExtension(auto) {
-  if (!bridgeV) { toast('No encuentro la extensión Chat Replay 1.9 o más nueva en este navegador'); return; }
-  toast('Trayendo tus cuentas, ajustes y chats de la extensión…', 6000);
-  try {
-    const id = Math.random().toString(36).slice(2);
-    const d = await new Promise((res, rej) => { bridgeWait = { id, res, rej }; bridge.contentWindow.postMessage({ type: 'tcr-bridge-export', id, withChats: true }, EXT_ORIGIN); setTimeout(() => { if (bridgeWait && bridgeWait.id === id) { bridgeWait = null; rej(new Error('la extensión no ha contestado')); } }, 120000); });
-    let skipped = 0;
-    for (const [k, v] of Object.entries(d.local || {})) { try { await chrome.storage.local.set({ [k]: v }); } catch { skipped++; } }
-    for (const [k, v] of Object.entries(d.sync || {})) { try { await chrome.storage.sync.set({ [k]: v }); } catch { skipped++; } }
-    for (const c of d.chats || []) {
-      const info = (d.infos || []).find(i => i.key === c.key) || { key: c.key, title: 'Chat', savedAt: Date.now() };
-      try { await DB.saveChat(c.key, c.data, info, null); } catch { skipped++; }
-    }
-    for (const l of d.links || []) if (l && l.vid) { try { await DB.put('links', l.vid, l); } catch { skipped++; } }
-    LS.set('tcr_app_imported', { at: Date.now(), version: d.version });
-    const acc = d.local && d.local.tcr_account;
-    toast(`✓ Traído de la extensión: ${(d.links || []).length} vídeos, ${(d.chats || []).length} chats${acc ? ', cuenta ' + acc.name : ''}${skipped ? ` (${skipped} cosas no cabían)` : ''}`, 5000);
-    setTimeout(() => location.reload(), 2200);
-  } catch (e) { if (!auto) toast('No se ha podido traer: ' + e.message, 5000); else console.warn(e); }
-}
 
 /* ===================================================================== */
 /*  Actualizaciones automáticas                                          */
@@ -801,7 +760,6 @@ if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) setInterval(() => fetc
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('../sw.js', { scope: '../' }).catch(() => {});
 
-startBridge();
 (async () => {
   try { APP_INFO = await fetchJson('version.json'); APP_V = APP_INFO.version || '?'; } catch {}
   showUpdated();
